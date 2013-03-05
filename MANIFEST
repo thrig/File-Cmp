@@ -5,3 +5,5 @@ README
 lib/File/Cmp.pm
 t/File-Cmp.t
 t/pod.t
+that
+this

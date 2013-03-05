@@ -6,11 +6,13 @@ use ExtUtils::MakeMaker;
 
 my %params = (
   NAME         => 'File::Cmp',
-  ABSTRACT     => 'compare two files character by character like cmp(1)',
+  ABSTRACT     => 'compare two files character by character',
   VERSION_FROM => 'lib/File/Cmp.pm',
   PREREQ_PM    => {
-    Carp         => 0,
-    'Test::More' => 0,
+    Carp           => 0,
+    Exporter       => 0,
+    'Scalar::Util' => 0,
+    'Test::More'   => 0,
   },
   ( $] >= 5.005
     ? ( AUTHOR => 'Jeremy Mates <jmates@cpan.org>' )

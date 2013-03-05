@@ -1,4 +1,4 @@
-File::Cmp - compare two files character by character like cmp(1)
+File::Cmp - compare two files character by character
 
 To install this module, use CPAN, for example:
 
