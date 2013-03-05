@@ -18,14 +18,14 @@ our @EXPORT_OK = qw/&fcmp/;
 our $VERSION = '1.00';
 
 # XXX 'skip' and 'limit' might be good parameters to add, to skip X
-# initial bytes, limit work to Y bytes of data to check, a param with a
-# scalar reference to be fed the byte of the first difference, etc.
+# initial bytes, limit work to Y bytes of data to check
 sub fcmp {
   croak 'fcmp needs two files' if @_ < 2;
   my @files = splice @_, 0, 2;
   my $param = ( @_ == 1 and ref $_[0] eq 'HASH' ) ? $_[0] : {@_};
 
   $param->{sizecheck} = 1 unless exists $param->{sizecheck};
+  $param->{sizecheck} = 0 if exists $param->{tells};
 
   if ( $param->{fscheck} ) {
     my @statbuf;
@@ -36,15 +36,18 @@ sub fcmp {
     }
     if (  $statbuf[0][0] == $statbuf[1][0]
       and $statbuf[0][1] == $statbuf[1][1] ) {
+      ${ $param->{reason} } = 'fscheck' if exists $param->{reason};
       return 1;    # assume files identical as both dev and inode match
     }
   }
 
   # The files are probably not identical if they differ in size;
   # however, offer means to turn this check off if -s for some reason is
-  # incorrect.
-  if ( $param->{sizecheck} ) {
-    return 0 if -s $files[0] != -s $files[1];
+  # incorrect (or if 'tells' is on so we need to find roughly where the
+  # difference is in the files).
+  if ( $param->{sizecheck} and -s $files[0] != -s $files[1] ) {
+    ${ $param->{reason} } = 'size' if exists $param->{reason};
+    return 0;
   }
 
   my @fhs;
@@ -71,17 +74,25 @@ sub fcmp {
     # completes before the other (this second case would normally be
     # optimized away by the -s test, above).
     last if $eof1 and $eof2;
-    return 0 if $eof1 xor $eof2;
+    if ( $eof1 xor $eof2 ) {
+      ${ $param->{reason} } = 'eof' if exists $param->{reason};
+      return 0;
+    }
 
     my $this = readline $fhs[0];
     croak "error reading from first file: $!" if !defined $this;
     my $that = readline $fhs[1];
     croak "error reading from second file: $!" if !defined $that;
 
-    return 0 if $this ne $that;    # differ, we're outta here
+    if ( $this ne $that ) {
+      @{ $param->{tells} } = ( tell $fhs[0], tell $fhs[1] )
+        if exists $param->{tells};
+      ${ $param->{reason} } = 'diff' if exists $param->{reason};
+      return 0;
+    }
   }
 
-  return 1;                        # assume files identical if get this far
+  return 1;    # assume files identical if get this far
 }
 
 1;
@@ -103,6 +114,8 @@ File::Cmp - compare two files character by character
     fscheck   => 1,       # ... but beware network fs/portability
     RS        => \"4096"  # handy for binary
   );
+
+Among other optional parameters.
 
 =head1 DESCRIPTION
 
@@ -130,7 +143,8 @@ Available parameters include:
 
 If set, applied as the C<LAYER> specification of a C<binmode> call
 performed on the files or file handles. C<:raw> may very well likely be
-prudent for most cases, to avoid wasting time on linefeeds and the like.
+prudent for most cases, to avoid wasting time on linefeeds and
+encodings.
 
 If the files need different C<binmode> settings, for example if
 comparing irrespective of the linefeeds involved, do not set this
@@ -143,6 +157,18 @@ If set and true, perform C<stat> tests on the input to check whether the
 device and inode numbers are identical. If so, this will avoid the need
 to check the file contents. This test may run afoul network filesystems
 or other edge cases possibly mentioned in L<perlport>.
+
+=item I<reason>
+
+A scalar reference that will be populated with a reason the files
+differ. Grep the source for what reasons are possible.
+
+  my $msg = '';
+  fcmp($f1, $f1, reason => \$msg);
+
+I<reason> will only be changed if the files differ, so may contain a
+stale value if the same scalar reference is used in multiple calls
+to B<fcmp>.
 
 =item I<RS>
 
@@ -158,6 +184,18 @@ files. This will force the file contents to be checked, even if the
 files are of differing size (and thus stand a good chance of not being
 identical). (Sparse files (untested) or unknown unknowns prompt the
 inclusion of this knob.)
+
+=item I<tells>
+
+An array reference that will be populated with the C<tell> offsets of
+where the files differ. Enabling this parameter disables the
+I<sizecheck> option, thus forcing inspection of the file contents.
+
+  my @where;
+  fcmp($f1, $f1, tells => \@where);
+
+Will only be set if the files differ (perhaps check I<reason> for that)
+and nothing else goes awry (EOF check, errors, etc).
 
 =back
 

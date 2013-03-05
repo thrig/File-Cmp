@@ -7,33 +7,49 @@ use Test::More;    # plan is down near bottom
 
 BEGIN { use_ok( 'File::Cmp', qw/fcmp/ ) }
 
-ok( fcmp( 'MANIFEST', 'MANIFEST' ), 'manifestly the same' );
+my $reason;        # for reason => callback to know what check triggered diff
 
-ok( !fcmp( 'MANIFEST', \*DATA ), 'differ' );
+ok( fcmp( 'MANIFEST', 'MANIFEST' ), 'manifestly the same' );
+ok( !fcmp( 'MANIFEST', \*DATA, reason => \$reason ), 'differ' );
 
 # seek() to reset should not be necessary, as the 'fscheck' code should
 # stat this file, discover that both filehandle reference point to this
 # file, and avoid looking at the contents.
 #seek DATA, 0, 0;
-ok( fcmp( \*DATA, \*DATA, fscheck => 1 ), 'fscheck' );
+ok( fcmp( \*DATA, \*DATA, fscheck => 1, reason => \$reason ), 'fscheck' );
+is( $reason, 'fscheck', 'reason callback' );
 
 # Default line-based reads are actually tricker than just setting RS to
 # something - RS => \"4096" or whatever and binmode => ':raw' might
 # actually be better defaults to set...
-ok( !fcmp( 'this', 'that' ), 'extra line, sizecheck' );
-ok( !fcmp( 'this', 'that', sizecheck => 0, blah => 1 ),
-  'extra line, no sizecheck' );
+ok( !fcmp( 'this', 'that', reason => \$reason ), 'extra line, sizecheck' );
+is( $reason, 'size', 'reason callback' );
 
-# XXX otherwise, debugging the internal action of fcmp is tricky; I
-# added warn statements to it to verify what I thought was happening,
-# but this isn't very robust if there is future development... perhaps
-# add a scalar reference param that would be populated with a reason for
-# the difference, or a verbose param?
+ok( !fcmp( 'this', 'that', sizecheck => 0, reason => \$reason ),
+  'extra line, no sizecheck' );
+is( $reason, 'eof', 'reason callback' );
+
+# 'tells' should disable the -s check, so must paw through file
+# contents. NOTE that this test will fail if MANIFEST or the top of this
+# file are fiddled with, sorry about that.
+seek DATA, 0, 0;
+my @where;
+ok(
+  !fcmp(
+    'MANIFEST', \*DATA,
+    binmode => ':raw',
+    reason  => \$reason,
+    tells   => \@where
+  ),
+  'differ'
+);
+is( $reason, 'diff', 'reason callback' );
+is_deeply( \@where, [ 8, 7 ], 'william tells' );
 
 # XXX sparse files might be good to test, but would likely have to
 # generate such files, assuming the target system supports them, etc.
 
-plan tests => 6;
+plan tests => 12;
 
 __DATA__
 An, Android
