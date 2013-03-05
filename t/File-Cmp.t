@@ -11,6 +11,7 @@ my $reason;        # for reason => callback to know what check triggered diff
 
 ok( fcmp( 'MANIFEST', 'MANIFEST' ), 'manifestly the same' );
 ok( !fcmp( 'MANIFEST', \*DATA, reason => \$reason ), 'differ' );
+is( $reason, 'size', 'reason callback' );
 
 # seek() to reset should not be necessary, as the 'fscheck' code should
 # stat this file, discover that both filehandle reference point to this
@@ -57,7 +58,7 @@ is_deeply( \@where, [ 8, 7 ], 'william tells' );
 # XXX sparse files might be good to test, but would likely have to
 # generate such files, assuming the target system supports them, etc.
 
-plan tests => 13;
+plan tests => 14;
 
 __DATA__
 An, Android
