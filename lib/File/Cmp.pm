@@ -15,7 +15,7 @@ require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw/&fcmp/;
 
-our $VERSION = '1.01';
+our $VERSION = '1.03';
 
 # XXX 'skip' and 'limit' might be good parameters to add, to skip X
 # initial bytes, limit work to Y bytes of data to check
@@ -211,6 +211,14 @@ Newer versions of this module may be available from CPAN. If the bug is
 in the latest version, check:
 
 L<http://github.com/thrig/File-Cmp>
+
+=head1 HISTORY
+
+As a historical note, there was an old L<File::Cmp> module from 1996-10-21
+that exported C<cmp_file>. That old interface is not replicated in this
+implementation, though would not be difficult to add, if necessary.
+
+L<http://backpan.perl.org/authors/id/J/JN/JNH/>
 
 =head1 SEE ALSO
 
