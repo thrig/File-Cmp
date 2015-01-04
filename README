@@ -1,23 +1,26 @@
 File::Cmp - compare two files character by character
 
-# Someone else has a lock on the File::Cmp module name in CPAN, so this
-# module may need to be renamed if that author is unresponsive or
-# unwilling to give up the module name...
-#To install this module, use CPAN, for example:
-#
-#  cpanm File::Cmp
+To install this module, use CPAN, for example:
 
-For the current release, see:
+  cpan File::Cmp
+
+The source tree is available at:
 
 http://github.com/thrig/File-Cmp
 
-which can be installed by cloning that directory then running `cpanm .`
-therein.
+This can be built and installed by running:
+
+  perl Makefile.PL
+  make
+  make test
+  make install
+
+Run perldoc(1) on File::Cmp for more documentation.
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2013 by Jeremy Mates
+Copyright (C) 2013-2015 by Jeremy Mates
 
-This library is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself, either Perl version 5.16 or, at
-your option, any later version of Perl 5 you may have available.
+This library is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself, either Perl version 5.16 or, at your option, any
+later version of Perl 5 you may have available.
