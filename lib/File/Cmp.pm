@@ -15,7 +15,7 @@ require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw/&fcmp/;
 
-our $VERSION = '1.07';
+our $VERSION = '1.08';
 
 # XXX 'skip' and 'limit' might be good parameters to add, to skip X
 # initial bytes, limit work to Y bytes of data to check
@@ -126,9 +126,9 @@ of two files are identical, in the spirit of the Unix L<cmp(1)> utility.
 A single subroutine, B<fcmp>, is offered for optional export. It expects
 at minimum two files or file handles, along with various optional
 parameters following those filenames. Any errors encountered will cause
-an exception to be thrown; consider C<eval> or L<Try::Tiny> to catch
-these. Otherwise, the return value will be true if the files are
-identical, false if not.
+an exception to be thrown; consider C<eval> or L<Syntax::Keyword::Try>
+to catch these. Otherwise, the return value will be true if the files
+are identical, false if not.
 
 Note that if passed a file handle, the code will read to the end of the
 handle, and will not rewind. This will require C<tell> and C<seek>
@@ -235,7 +235,7 @@ thrig - Jeremy Mates (cpan:JMATES) C<< <jmates at cpan.org> >>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2013-2015 by Jeremy Mates
+Copyright (C) 2013-2015,2017 by Jeremy Mates
 
 This module is free software; you can redistribute it and/or modify it
 under the Artistic License (2.0).
